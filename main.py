@@ -6,7 +6,7 @@ import urllib.parse as urlparse
 from urllib.parse import parse_qs
 
 
-api_token = "AIzaSyBSu9pp3p7YlZIVJAM4RmBUBwy93ORnxH8"
+api_token = "Add your google API Token here"
 google_api_base_url = "https://www.googleapis.com/youtube/v3"
 
 
