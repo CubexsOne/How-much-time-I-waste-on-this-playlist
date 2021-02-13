@@ -119,7 +119,7 @@ def extract_url(parameters: list[str]) -> str:
     for key, val in opts:
         if key == "-p":
             return val
-    raise invalid_argument.InvalidArgumentException("This has no params")
+    raise invalid_argument.InvalidArgumentException()
 
 
 if __name__ == "__main__":
