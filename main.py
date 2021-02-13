@@ -14,6 +14,25 @@ if "API_TOKEN2" in os.environ:
 google_api_base_url = "https://www.googleapis.com/youtube/v3"
 
 
+def main():
+    try:
+        playlist_url = extract_url(sys.argv)
+        playlist_id = extract_playlist_id(playlist_url)
+
+        video_ids = retrieve_video_ids(playlist_id)
+        video_durations = retrieve_video_duration(video_ids)
+        duration = parse_duration(video_durations)
+
+        parsed_time = parse_seconds_to_formatted_length(duration)
+
+        print("Playlist Details:")
+        print(f" - Duration: {parsed_time}")
+    except invalid_argument.InvalidArgumentException:
+        print("Missing or invalid Arguments:")
+        print("Usage:")
+        print("-p or --playlist PlaylistURL")
+
+
 def extract_playlist_id(playlist_url: str) -> str:
     parsed_url = urlparse.urlparse(playlist_url)
     playlist_id = parse_qs(parsed_url.query)["list"][0]
@@ -86,25 +105,6 @@ def parse_seconds_to_formatted_length(duration: int) -> str:
     seconds = duration - ((hours * 3600) + (minutes * 60))
 
     return f"{hours}:{minutes}:{seconds}"
-
-
-def main():
-    try:
-        playlist_url = extract_url(sys.argv)
-        playlist_id = extract_playlist_id(playlist_url)
-
-        video_ids = retrieve_video_ids(playlist_id)
-        video_durations = retrieve_video_duration(video_ids)
-        duration = parse_duration(video_durations)
-
-        parsed_time = parse_seconds_to_formatted_length(duration)
-
-        print("Playlist Details:")
-        print(f" - Duration: {parsed_time}")
-    except invalid_argument.InvalidArgumentException:
-        print("Missing or invalid Arguments:")
-        print("Usage:")
-        print("-p or --playlist PlaylistURL")
 
 
 def extract_url(parameters: list[str]) -> str:
