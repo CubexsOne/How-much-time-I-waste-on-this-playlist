@@ -1,6 +1,4 @@
-from exceptions import invalid_argument
-from exceptions import invalid_url
-from exceptions import fetch_from_api
+from exceptions import invalid_argument, invalid_url, fetch_from_api
 import os
 import sys
 import getopt
