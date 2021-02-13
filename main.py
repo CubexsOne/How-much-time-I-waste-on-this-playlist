@@ -111,7 +111,7 @@ def parse_seconds_to_formatted_length(duration: int) -> str:
     minutes = (duration - (hours * 3600)) // 60
     seconds = duration - ((hours * 3600) + (minutes * 60))
 
-    return f"{hours}:{minutes}:{seconds}"
+    return f"{hours} hours, {minutes} minutes and {seconds} seconds"
 
 
 def extract_url(parameters: list[str]) -> str:
