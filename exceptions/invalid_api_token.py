@@ -1,2 +1,0 @@
-class InvalidApiTokenException(Exception):
-    pass
