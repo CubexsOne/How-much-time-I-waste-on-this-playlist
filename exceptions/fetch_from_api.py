@@ -1,0 +1,2 @@
+class FetchFromApiException(Exception):
+    pass
