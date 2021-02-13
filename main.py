@@ -1,4 +1,5 @@
 from exceptions import invalid_argument
+from exceptions import invalid_url
 from exceptions import fetch_from_api
 import os
 import sys
@@ -32,13 +33,22 @@ def main():
         print("Missing or invalid Arguments:")
         print("Usage:")
         print("-p or --playlist PlaylistURL")
+    except invalid_url.InvalidUrlException as detail:
+        print("Invalid URL:")
+        print(detail)
     except fetch_from_api.FetchFromApiException as detail:
         print("Fetch Exception")
         print(detail)
 
 
 def extract_playlist_id(playlist_url: str) -> str:
+    if "youtube" not in playlist_url:
+        raise invalid_url.InvalidUrlException("No Youtube URL was passed")
+
     parsed_url = urlparse.urlparse(playlist_url)
+    if "list" not in parse_qs(parsed_url.query):
+        raise invalid_url.InvalidUrlException("Missing 'list' query parameter")
+
     playlist_id = parse_qs(parsed_url.query)["list"][0]
 
     return playlist_id
