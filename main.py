@@ -1,4 +1,5 @@
 from exceptions import invalid_argument
+from exceptions import fetch_from_api
 import os
 import sys
 import getopt
@@ -8,7 +9,7 @@ from urllib.parse import parse_qs
 
 
 api_token = "Add your google API Token here"
-if "API_TOKEN2" in os.environ:
+if "API_TOKEN" in os.environ:
     api_token = os.environ["API_TOKEN"]
 
 google_api_base_url = "https://www.googleapis.com/youtube/v3"
@@ -31,6 +32,9 @@ def main():
         print("Missing or invalid Arguments:")
         print("Usage:")
         print("-p or --playlist PlaylistURL")
+    except fetch_from_api.FetchFromApiException as detail:
+        print("Fetch Exception")
+        print(detail)
 
 
 def extract_playlist_id(playlist_url: str) -> str:
@@ -49,6 +53,9 @@ def retrieve_video_ids(playlist_id: str) -> list[str]:
     }
     url = f"{google_api_base_url}/playlistItems"
     response = requests.get(url, query_params)
+
+    if "error" in response.json():
+        raise fetch_from_api.FetchFromApiException(response.json()["error"]["message"])
 
     items = response.json()["items"]
     video_ids = []
