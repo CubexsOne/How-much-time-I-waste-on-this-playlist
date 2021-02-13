@@ -1,17 +1,13 @@
+import os, sys, getopt, requests
 from exceptions import invalid_argument, invalid_url, fetch_from_api
-import os
-import sys
-import getopt
-import requests
 import urllib.parse as urlparse
 from urllib.parse import parse_qs
+from dotenv import load_dotenv
 
-
-api_token = "Add your google API Token here"
-if "API_TOKEN" in os.environ:
-    api_token = os.environ["API_TOKEN"]
-
-google_api_base_url = "https://www.googleapis.com/youtube/v3"
+# read dotenv-file
+load_dotenv()
+api_token: str = str(os.getenv("YOUTUBE_API_KEY"))
+google_api_base_url: str = str(os.getenv("YOUTUBE_API_ROUTE"))
 
 
 def main():
