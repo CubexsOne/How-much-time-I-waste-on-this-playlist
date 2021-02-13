@@ -1,4 +1,5 @@
 from exceptions import invalid_argument
+import os
 import sys
 import getopt
 import requests
@@ -7,6 +8,9 @@ from urllib.parse import parse_qs
 
 
 api_token = "Add your google API Token here"
+if "API_TOKEN2" in os.environ:
+    api_token = os.environ["API_TOKEN"]
+
 google_api_base_url = "https://www.googleapis.com/youtube/v3"
 
 
