@@ -56,17 +56,29 @@ def extract_playlist_id(playlist_url: str) -> str:
 def retrieve_video_ids(playlist_id: str) -> list:
     query_params = {
         "key": api_token,
-        "maxResults": 9999,
+        "maxResults": 50,
         "part": "snippet,contentDetails,id,status",
-        "playlistId": playlist_id,
+        "playlistId": playlist_id
     }
     url = f"{google_api_base_url}/playlistItems"
     response = requests.get(url, query_params)
+    items = response.json()["items"]
+
+    total_results: int = response.json()["pageInfo"]["totalResults"]
+    results_per_page: int = response.json()["pageInfo"]["resultsPerPage"]
+    pages = total_results // results_per_page
+    for page_number in range(pages):
+        if page_number < total_results - 1:
+            print("PG:", page_number)
+            query_params["pageToken"] = response.json()["nextPageToken"]
+        else:
+            break
+        response = requests.get(url, query_params)
+        items += response.json()["items"]
 
     if "error" in response.json():
         raise fetch_from_api.FetchFromApiException(response.json()["error"]["message"])
 
-    items = response.json()["items"]
     video_ids = []
     for item in items:
         if item["status"]["privacyStatus"] == "public":
@@ -78,7 +90,6 @@ def retrieve_video_ids(playlist_id: str) -> list:
 def retrieve_video_duration(video_ids: list) -> list:
     query_params = {
         "key": api_token,
-        "maxResults": 9999,
         "part": "contentDetails",
         "id": ""
     }
