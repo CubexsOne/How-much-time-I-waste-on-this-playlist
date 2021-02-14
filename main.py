@@ -69,7 +69,6 @@ def retrieve_video_ids(playlist_id: str) -> list:
     pages = total_results // results_per_page
     for page_number in range(pages):
         if page_number < total_results - 1:
-            print("PG:", page_number)
             query_params["pageToken"] = response.json()["nextPageToken"]
         else:
             break
