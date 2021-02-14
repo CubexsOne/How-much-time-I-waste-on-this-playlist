@@ -2,16 +2,20 @@ import os, sys, getopt, requests
 from exceptions import invalid_argument, invalid_url, fetch_from_api
 import urllib.parse as urlparse
 from urllib.parse import parse_qs
+from src.Logger.Logger import Logger
 from dotenv import load_dotenv
+
 
 # read dotenv-file
 load_dotenv()
 api_token: str = str(os.getenv("YOUTUBE_API_KEY"))
 google_api_base_url: str = str(os.getenv("YOUTUBE_API_ROUTE"))
 
-
 def main():
     try:
+        error_logger = Logger()
+        error_logger.success("How much time I waste on this playlist was started")
+
         playlist_url = extract_url(sys.argv)
         playlist_id = extract_playlist_id(playlist_url)
 
@@ -48,7 +52,7 @@ def extract_playlist_id(playlist_url: str) -> str:
     return playlist_id
 
 
-def retrieve_video_ids(playlist_id: str) -> list[str]:
+def retrieve_video_ids(playlist_id: str) -> list:
     query_params = {
         "key": api_token,
         "maxResults": 9999,
@@ -70,7 +74,7 @@ def retrieve_video_ids(playlist_id: str) -> list[str]:
     return video_ids
 
 
-def retrieve_video_duration(video_ids: list[str]) -> list[str]:
+def retrieve_video_duration(video_ids: list) -> list:
     query_params = {
         "key": api_token,
         "maxResults": 9999,
@@ -91,7 +95,7 @@ def retrieve_video_duration(video_ids: list[str]) -> list[str]:
     return durations
 
 
-def parse_duration(video_durations: list[str]) -> int:
+def parse_duration(video_durations: list) -> int:
     hours_in_seconds = 3600
     minutes_in_seconds = 60
 
@@ -148,7 +152,7 @@ def parse_seconds_to_formatted_length(duration: int) -> str:
     return f"{days} days, {hours} hours, {minutes} minutes and {seconds} seconds"
 
 
-def extract_url(parameters: list[str]) -> str:
+def extract_url(parameters: list) -> str:
     opts, rest = getopt.getopt(parameters[1:], "p:", ["playlist:"])
     for key, val in opts:
         if key == "-p":
