@@ -11,6 +11,7 @@ load_dotenv()
 api_token: str = str(os.getenv("YOUTUBE_API_KEY"))
 google_api_base_url: str = str(os.getenv("YOUTUBE_API_ROUTE"))
 
+
 def main():
     try:
         error_logger = Logger()
