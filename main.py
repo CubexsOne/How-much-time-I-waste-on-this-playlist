@@ -14,8 +14,8 @@ google_api_base_url: str = str(os.getenv("YOUTUBE_API_ROUTE"))
 
 def main():
     try:
-        error_logger = Logger()
-        error_logger.success("How much time I waste on this playlist was started")
+        logger = Logger()
+        logger.success("How much time I waste on this playlist was started")
 
         playlist_url = extract_url(sys.argv)
         playlist_id = extract_playlist_id(playlist_url)
@@ -26,18 +26,19 @@ def main():
 
         parsed_time = parse_seconds_to_formatted_length(duration)
 
-        print("Playlist Details:")
-        print(f" - Duration: {parsed_time}")
+        print()
+        logger.success("Playlist Details:")
+        logger.success(f" - Duration: {parsed_time}")
     except invalid_argument.InvalidArgumentException:
-        print("Missing or invalid Arguments:")
-        print("Usage:")
-        print("-p or --playlist PlaylistURL")
+        logger.info("Missing or invalid Arguments:")
+        logger.info("Usage:")
+        logger.info("-p or --playlist PlaylistURL")
     except invalid_url.InvalidUrlException as detail:
-        print("Invalid URL:")
-        print(detail)
+        logger.info("Invalid URL:")
+        logger.info(detail)
     except fetch_from_api.FetchFromApiException as detail:
-        print("Fetch Exception")
-        print(detail)
+        logger.error("Fetch Exception")
+        logger.error(detail)
 
 
 def extract_playlist_id(playlist_url: str) -> str:
