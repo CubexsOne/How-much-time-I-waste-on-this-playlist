@@ -1,7 +1,7 @@
 import datetime, os
 
-class Logger():
 
+class Logger:
     def get_time_str(self) -> str:
         return str(datetime.datetime.now().strftime("%d.%m.%Y %H:%M:%S"))
 
@@ -22,4 +22,4 @@ class Logger():
 
     def write_to_file(self, logger_content: str):
         with open(str(os.getenv("ERRORFILE_PATH")), 'a', encoding='utf-8') as f:
-            f.write(logger_content,"\n")
+            f.write(logger_content + "\n")
