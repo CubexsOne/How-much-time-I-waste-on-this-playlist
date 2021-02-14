@@ -51,7 +51,7 @@ def extract_playlist_id(playlist_url: str) -> str:
 def retrieve_video_ids(playlist_id: str) -> list[str]:
     query_params = {
         "key": api_token,
-        "maxResults": 25,
+        "maxResults": 9999,
         "part": "snippet,contentDetails,id,status",
         "playlistId": playlist_id,
     }
@@ -64,7 +64,8 @@ def retrieve_video_ids(playlist_id: str) -> list[str]:
     items = response.json()["items"]
     video_ids = []
     for item in items:
-        video_ids.append(item["contentDetails"]["videoId"])
+        if item["status"]["privacyStatus"] == "public":
+            video_ids.append(item["contentDetails"]["videoId"])
 
     return video_ids
 
@@ -72,7 +73,7 @@ def retrieve_video_ids(playlist_id: str) -> list[str]:
 def retrieve_video_duration(video_ids: list[str]) -> list[str]:
     query_params = {
         "key": api_token,
-        "maxResults": 25,
+        "maxResults": 9999,
         "part": "contentDetails",
         "id": ""
     }
@@ -96,26 +97,55 @@ def parse_duration(video_durations: list[str]) -> int:
 
     duration_in_seconds = 0
     for duration in video_durations:
+        hours = 0
+        minutes = 0
+        seconds = 0
         duration_without_prefix = duration[2:]
-        hours = duration_without_prefix.split("H")[0]
 
-        duration_without_hours = duration[2:].split("H")[1]
-        minutes = duration_without_hours.split("M")[0]
+        if "H" in duration_without_prefix:
+            hours = extract_numbers(duration_without_prefix, "H")
 
-        duration_without_minutes = duration_without_hours.split("M")[1]
-        seconds = duration_without_minutes.split("S")[0]
+        if "M" in duration_without_prefix:
+            minutes = extract_numbers(duration_without_prefix, "M")
+
+        if "S" in duration_without_prefix:
+            seconds = extract_numbers(duration_without_prefix, "S")
 
         duration_in_seconds += (int(hours) * hours_in_seconds) + (int(minutes) * minutes_in_seconds) + int(seconds)
     return duration_in_seconds
 
 
+def extract_numbers(duration: str, time_unit) -> int:
+    time_index = duration.index(time_unit) - 1
+    current_val = duration[time_index]
+
+    length = 1
+    while is_integer(current_val) and time_index > 0:
+        time_index -= 1
+        length += 1
+
+        if is_integer(duration[time_index:time_index + length]):
+            current_val = duration[time_index:time_index + length]
+
+    return int(current_val)
+
+
+def is_integer(val) -> bool:
+    try:
+        _ = int(val)
+    except ValueError:
+        return False
+    else:
+        return True
+
+
 def parse_seconds_to_formatted_length(duration: int) -> str:
+    days = duration // 86400
+    hours = (duration - (days * 86400)) // 3600
+    minutes = (duration - ((hours * 3600) + (days * 86400))) // 60
+    seconds = duration - ((days * 86400) + (hours * 3600) + (minutes * 60))
 
-    hours = duration // 3600
-    minutes = (duration - (hours * 3600)) // 60
-    seconds = duration - ((hours * 3600) + (minutes * 60))
-
-    return f"{hours} hours, {minutes} minutes and {seconds} seconds"
+    return f"{days} days, {hours} hours, {minutes} minutes and {seconds} seconds"
 
 
 def extract_url(parameters: list[str]) -> str:
