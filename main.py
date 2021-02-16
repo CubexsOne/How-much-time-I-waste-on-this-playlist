@@ -1,10 +1,13 @@
-import os, sys, getopt, requests
-from exceptions import invalid_argument, invalid_url, fetch_from_api
-import urllib.parse as urlparse
-from urllib.parse import parse_qs
-from src.Logger.Logger import Logger
+import argparse
+import os
+
+import requests
 from dotenv import load_dotenv
 
+from exceptions import fetch_from_api
+from src.Actions.RangeAction import RangeAction
+from src.Actions.YoutubeURLAction import YoutubeURLAction
+from src.Logger.Logger import Logger
 
 # read dotenv-file
 load_dotenv()
@@ -13,45 +16,33 @@ google_api_base_url: str = str(os.getenv("YOUTUBE_API_ROUTE"))
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Check how much time I waste on this playlist")
+
+    parser.add_argument("-p", "--playlist", help="YouTube video playlist url", action=YoutubeURLAction, required=True)
+    parser.add_argument("-r", "--range",
+                        help="Video range to select (example: -r 1,3-5,7+9+10). If not set, all videos are selected",
+                        action=RangeAction)
+
+    args = parser.parse_args()
+
+    logger = Logger()
+
     try:
-        logger = Logger()
         logger.success("How much time I waste on this playlist was started")
 
-        playlist_url = extract_url(sys.argv)
-        playlist_id = extract_playlist_id(playlist_url)
-
-        video_ids = retrieve_video_ids(playlist_id)
-        video_durations = retrieve_video_duration(video_ids)
+        video_ids = retrieve_video_ids(args.playlist)
+        filtered_ids = filter_video_ids(video_ids, args.range)
+        video_durations = retrieve_video_duration(filtered_ids)
         duration = parse_duration(video_durations)
 
         parsed_time = parse_seconds_to_formatted_length(duration)
 
         print()
         logger.success("Playlist Details:")
-        logger.success(f" - Duration: {parsed_time}")
-    except invalid_argument.InvalidArgumentException:
-        logger.info("Missing or invalid Arguments:")
-        logger.info("Usage:")
-        logger.info("-p or --playlist PlaylistURL")
-    except invalid_url.InvalidUrlException as detail:
-        logger.info("Invalid URL:")
-        logger.info(detail)
+        logger.success(f" - Duration: {parsed_time} for {len(filtered_ids)} videos")
     except fetch_from_api.FetchFromApiException as detail:
         logger.error("Fetch Exception")
-        logger.error(detail)
-
-
-def extract_playlist_id(playlist_url: str) -> str:
-    if "youtube" not in playlist_url:
-        raise invalid_url.InvalidUrlException("No Youtube URL was passed")
-
-    parsed_url = urlparse.urlparse(playlist_url)
-    if "list" not in parse_qs(parsed_url.query):
-        raise invalid_url.InvalidUrlException("Missing 'list' query parameter")
-
-    playlist_id = parse_qs(parsed_url.query)["list"][0]
-
-    return playlist_id
+        logger.error(str(detail))
 
 
 def retrieve_video_ids(playlist_id: str) -> list:
@@ -59,28 +50,36 @@ def retrieve_video_ids(playlist_id: str) -> list:
         "key": api_token,
         "maxResults": 50,
         "part": "snippet,contentDetails,id,status",
-        "playlistId": playlist_id
+        "playlistId": playlist_id,
     }
     url = f"{google_api_base_url}/playlistItems"
     response = requests.get(url, query_params)
-    items = response.json()["items"]
+    json_response = response.json()
+    items = json_response["items"]
 
-    total_results: int = response.json()["pageInfo"]["totalResults"]
-    results_per_page: int = response.json()["pageInfo"]["resultsPerPage"]
+    total_results: int = json_response["pageInfo"]["totalResults"]
+    results_per_page: int = json_response["pageInfo"]["resultsPerPage"]
     pages = total_results // results_per_page
     for page_number in range(pages):
         if page_number < total_results - 1:
-            query_params["pageToken"] = response.json()["nextPageToken"]
+            query_params["pageToken"] = json_response["nextPageToken"]
         else:
             break
         response = requests.get(url, query_params)
         items += response.json()["items"]
 
-    if "error" in response.json():
-        raise fetch_from_api.FetchFromApiException(response.json()["error"]["message"])
+    json_response = response.json()
+    if "error" in json_response:
+        raise fetch_from_api.FetchFromApiException(json_response["error"]["message"])
 
+    return items
+
+
+def filter_video_ids(items: list, range_list: list) -> list:
     video_ids = []
-    for item in items:
+    for index, item in enumerate(items):
+        if range_list is not None and index not in range_list:
+            continue
         if item["status"]["privacyStatus"] == "public":
             video_ids.append(item["contentDetails"]["videoId"])
 
@@ -162,14 +161,6 @@ def parse_seconds_to_formatted_length(duration: int) -> str:
     seconds = duration - ((days * 86400) + (hours * 3600) + (minutes * 60))
 
     return f"{days} days, {hours} hours, {minutes} minutes and {seconds} seconds"
-
-
-def extract_url(parameters: list) -> str:
-    opts, rest = getopt.getopt(parameters[1:], "p:", ["playlist:"])
-    for key, val in opts:
-        if key == "-p":
-            return val
-    raise invalid_argument.InvalidArgumentException()
 
 
 if __name__ == "__main__":
