@@ -8,6 +8,20 @@
 - Execute script with -p or --playlist and the full url of the playlist
 - Wait for the result
 
+### Full usage:
+```bash
+usage: main.py [-h] -p PLAYLIST [-r RANGE]
+
+Check how much time I waste on this playlist
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PLAYLIST, --playlist PLAYLIST
+                        YouTube video playlist url
+  -r RANGE, --range RANGE
+                        Video range to select (example: -r 1,3-5,7+9+10). If not set, all videos are selected
+```
+
 ### Get Google API Token:
 - Login on https://console.cloud.google.com/home/dashboard
 - Create a project
