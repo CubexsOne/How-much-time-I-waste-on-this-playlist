@@ -1,4 +1,5 @@
-import datetime, os
+import datetime
+import os
 
 
 class Logger:
@@ -21,5 +22,5 @@ class Logger:
         self.write_to_file(message)
 
     def write_to_file(self, logger_content: str):
-        with open(str(os.getenv("ERRORFILE_PATH")), 'a', encoding='utf-8') as f:
+        with open(str(os.getenv("LOGFILE_PATH")), 'a', encoding='utf-8') as f:
             f.write(logger_content + "\n")
